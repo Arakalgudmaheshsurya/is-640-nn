@@ -1,3 +1,4 @@
+
 class Value:
     
 
@@ -30,17 +31,26 @@ class Value:
 
         return out
 
-    def exp(self):
-        x = self.data
-        out = Value(math.exp(x), (self, ), 'exp')
+    def __pow__(self, other):
+        assert isinstance(other, (int, float)), "only supporting int/float powers for now"
+        out = Value(self.data**other, (self,), f'**{other}')
+
         def _backward():
-            self.grad = out.data * out .grad
-        out-_backward =_backward
+            self.grad += (other * self.data**(other-1)) * out.grad
+        out._backward = _backward
+
         return out
 
+    def relu(self):
+        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
 
+        def _backward():
+            self.grad += (out.data > 0) * out.grad
+        out._backward = _backward
 
-def backward(self):
+        return out
+
+    def backward(self):
 
         
         topo = []
@@ -57,3 +67,27 @@ def backward(self):
         self.grad = 1
         for v in reversed(topo):
             v._backward()
+
+    def __neg__(self): 
+        return self * -1
+
+    def __radd__(self, other): 
+        return self + other
+
+    def __sub__(self, other): 
+        return self + (-other)
+
+    def __rsub__(self, other): 
+        return other + (-self)
+
+    def __rmul__(self, other): 
+        return self * other
+
+    def __truediv__(self, other): 
+        return self * other**-1
+
+    def __rtruediv__(self, other): 
+        return other * self**-1
+
+    def __repr__(self):
+        return f"Value(data={self.data}, grad={self.grad})"
